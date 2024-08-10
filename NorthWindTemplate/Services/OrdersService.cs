@@ -112,7 +112,7 @@ namespace NorthWindTemplate.Services
 
             _context.Orders.Remove(order);
 
-            //_context.SaveChanges();
+            _context.SaveChanges();
 
             return true;
         }
