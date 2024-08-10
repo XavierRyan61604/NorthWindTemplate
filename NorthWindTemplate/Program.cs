@@ -12,6 +12,9 @@ builder.Services.AddDbContext<NorthwindContext>(options =>
 builder.Services.AddScoped<IOrderService, OrdersService>();
 builder.Services.AddSwaggerGen();
 
+// Add response caching service
+builder.Services.AddResponseCaching();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,6 +33,7 @@ else
         options.RoutePrefix = "swagger";
     });
 }
+app.UseResponseCaching();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

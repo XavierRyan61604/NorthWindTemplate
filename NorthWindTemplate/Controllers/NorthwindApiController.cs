@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NorthWindTemplate.Data.Models;
+using NorthWindTemplate.Models.DTOs;
 using NorthWindTemplate.Models.ViewModels;
 using NorthWindTemplate.Services;
 
@@ -19,10 +20,22 @@ namespace NorthWindTemplate.Controllers
 
         // GET: api/NorthwindApi
         [HttpGet("orders")]
-        public ActionResult<IEnumerable<OrderWithDetailsViewModel>> GetOrders()
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
+        public ActionResult<IEnumerable<PaginatedResponseViewModel<OrderWithDetailsResponseDTO>>> GetOrders([FromQuery] GetOrdersPaginationRequestDTO req)
         {
-            var orders = _orderService.GetOrdersWithDetails();
-            return Ok(orders);
+            var totalRecords = _orderService.GetOrdersCount();
+
+            var orders = _orderService.GetOrdersWithDetails(req);
+
+            var response = new PaginatedResponseViewModel<OrderWithDetailsResponseDTO>
+            {
+                Draw = req.draw,
+                RecordsTotal = totalRecords,
+                RecordsFiltered = totalRecords,
+                Data = orders
+            };
+
+            return Ok(response);
         }
     }
 }

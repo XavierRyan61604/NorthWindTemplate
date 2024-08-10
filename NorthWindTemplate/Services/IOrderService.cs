@@ -1,10 +1,10 @@
-﻿using NorthWindTemplate.Data.Models;
-using NorthWindTemplate.Models.ViewModels;
+﻿using NorthWindTemplate.Models.DTOs;
 
 namespace NorthWindTemplate.Services
 {
     public interface IOrderService
     {
-        IEnumerable<OrderWithDetailsViewModel> GetOrdersWithDetails();
+        IEnumerable<OrderWithDetailsResponseDTO> GetOrdersWithDetails(GetOrdersPaginationRequestDTO req);
+        int GetOrdersCount();
     }
 }
