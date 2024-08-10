@@ -13,12 +13,12 @@
 
     div.top {
         display: flex;
-        justify-content:space-between;
+        justify-content: space-between;
         margin-bottom: 16px;
     }
 </style>
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+    <h1 class="display-4">訂單一覽表</h1>
     <table id="ordersTable" class="display table table-bordered" style="width:100%">
         <thead>
             <tr>
@@ -31,33 +31,54 @@
             </tr>
         </thead>
     </table>
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">訂單編號:</h5>
+                    <h5 id="orderID"></h5>
+                </div>
+                <div class="modal-body">
+                    <form id="orderForm">
+                        <div class="mb-3">
+                            <label for="modalFreight" class="form-label"><strong>運費:</strong></label>
+                            <input type="number" class="form-control" id="modalFreight">
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalFreight" class="form-label"><strong>公司名稱:</strong></label>
+                            <input type="text" class="form-control" id="shipName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalFreight" class="form-label"><strong>公司地址:</strong></label>
+                            <input type="text" class="form-control" id="shipAddress">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()" data-dismiss="modal">close</button>
+                    <button type="button" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript">
-    function openEditModal(orderId) {
-        if (confirm('Are you sure you want to Edit order: ' + orderId + '?')) {
-            // 在这里你可以处理删除逻辑
-            alert('Order deleted: ' + orderId);
-        }
-        // $('#editOrderModal').modal('show'); // Bootstrap 方式显示 Modal
-    }
-
-    function openDeleteModal(orderId) {
-        if (confirm('Are you sure you want to delete order: ' + orderId + '?')) {
-            // 在这里你可以处理删除逻辑
-            alert('Order deleted: ' + orderId);
-        }
-    }
-    function openAddModal() {
-        alert('openAddModal')
-    }
-
+    let orderTable;
     $(document).ready(function () {
-        $('h1').text('訂單一覽表');
-        $('#ordersTable').DataTable({
+        orderTable = $('#ordersTable').DataTable({
+            "serverSide": true,
             "ajax": {
                 "url": "@Url.Content("~/api/NorthwindApi/orders")",
-                "dataSrc": ""
+                "type": "GET",
+                "dataSrc": "data",
+                "data": function (d) {
+                    return {
+                        draw: d.draw,
+                        PageNumber: Math.floor(d.start / d.length) + 1,
+                        PageSize: d.length
+                    };
+                },
             },
             "paging": true,
             "pageLength": 20,
@@ -80,9 +101,9 @@
                     "orderable": false,
                     "render": function (data, type, row) {
                         return `
-                    <button class="btn btn-primary btn-sm edit-btn" onClick="openEditModal(${row.orderId})">Edit</button>
-                    <button class="btn btn-danger btn-sm delete-btn"onClick="openDeleteModal(${row.orderId})">Delete</button>
-            `;
+                                            <button id="EditBtn" class="btn btn-primary btn-sm edit-btn" onClick="openEditModal(${row.orderId})">Edit</button>
+                                            <button id="deleteBtn" class="btn btn-danger btn-sm delete-btn"onClick="openDeleteModal(${row.orderId})">Delete</button>
+                                    `;
                     }
                 }
             ],
@@ -90,9 +111,26 @@
             "initComplete": function () {
                 var btnHtml = '<button id="addBtn" class="btn btn-success btn-sm" onClick="openAddModal()">新增</button>';
                 $('div.top').append(btnHtml);
-            }
-
+            },
+            "ordering": false,
+            "searching": false,
         });
     });
+    function openEditModal(orderId) {
+        $('#editModal').modal('show');
+        $('#orderID').text(orderId);
+    }
+
+    function openDeleteModal(orderId) {
+        const confirmationMessage = `請問你確定要刪除訂單編號: ${orderId} ,此行為會將訂單細節也一併刪除喔?`;
+    }
+    function openAddModal() {
+        alert('openAddModal')
+    }
+
+    function closeModal() {
+        $('#editModal').modal('hide');
+        orderTable.ajax.reload();
+    }
 
 </script>
