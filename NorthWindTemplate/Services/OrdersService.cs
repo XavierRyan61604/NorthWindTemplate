@@ -39,7 +39,7 @@ namespace NorthWindTemplate.Services
                     Freight = g.Key.Freight,
                     ShipAddress = g.Key.ShipAddress,
                     ShipName = g.Key.ShipName,
-                    TotalOrderValue = g.Sum(od => od.orderDetail.Quantity * od.orderDetail.UnitPrice)
+                    TotalOrderValue = g.Sum(od => od.orderDetail.Quantity * od.orderDetail.UnitPrice) + g.Key.Freight ?? 0
                 })
                 .OrderByDescending(o => o.OrderId)
                 .Skip((r.PageNumber - 1) * r.PageSize)
@@ -160,8 +160,8 @@ namespace NorthWindTemplate.Services
 
                     var orderDetail = new OrderDetail
                     {
-                        OrderId = generatedOrderId, 
-                        ProductId = randomProductId, 
+                        OrderId = generatedOrderId,
+                        ProductId = randomProductId,
                         UnitPrice = 20.00M,
                         Quantity = 5,
                         Discount = 0.0f
