@@ -26,6 +26,8 @@
                 <th>客戶名稱</th>
                 <th>訂單日期</th>
                 <th>運費</th>
+                <th>公司名稱</th>
+                <th>公司地址</th>
                 <th>訂單總金額</th>
                 <th>功能</th>
             </tr>
@@ -46,21 +48,47 @@
                         </div>
                         <div class="mb-3">
                             <label for="modalFreight" class="form-label"><strong>公司名稱:</strong></label>
-                            <input type="text" class="form-control" id="shipName">
+                            <input type="text" class="form-control" id="modalShipName">
                         </div>
                         <div class="mb-3">
                             <label for="modalFreight" class="form-label"><strong>公司地址:</strong></label>
-                            <input type="text" class="form-control" id="shipAddress">
+                            <input type="text" class="form-control" id="modalShipAddress">
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()" data-dismiss="modal">close</button>
-                    <button type="button" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()" data-dismiss="modal">close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEditModal()">Save</button>
                 </div>
             </div>
         </div>
     </div>
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增訂單</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="orderForm">
+                        <div class="mb-3">
+                            <label for="modalFreight" class="form-label"><strong>新增公司名稱:</strong></label>
+                            <input type="text" class="form-control" id="modalAddShipName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalFreight" class="form-label"><strong>新增公司地址:</strong></label>
+                            <input type="text" class="form-control" id="modalAddShipAddress">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddModal()" data-dismiss="modal">close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAddModal()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script type="text/javascript">
@@ -94,6 +122,8 @@
                     }
                 },
                 { "data": "freight" },
+                { "data": "shipName" },
+                { "data": "shipAddress" },
                 { "data": "totalOrderValue" },
                 {
                     "data": null,
@@ -101,9 +131,9 @@
                     "orderable": false,
                     "render": function (data, type, row) {
                         return `
-                                            <button id="EditBtn" class="btn btn-primary btn-sm edit-btn" onClick="openEditModal(${row.orderId})">Edit</button>
-                                            <button id="deleteBtn" class="btn btn-danger btn-sm delete-btn"onClick="openDeleteModal(${row.orderId})">Delete</button>
-                                    `;
+                                                    <button id="EditBtn" class="btn btn-primary btn-sm edit-btn" onClick="openEditModal(${row.orderId})">Edit</button>
+                                                    <button id="deleteBtn" class="btn btn-danger btn-sm delete-btn"onClick="openDeleteModal(${row.orderId})">Delete</button>
+                                            `;
                     }
                 }
             ],
@@ -117,20 +147,105 @@
         });
     });
     function openEditModal(orderId) {
-        $('#editModal').modal('show');
         $('#orderID').text(orderId);
-    }
+        $.ajax({
+            url: '@Url.Content("~/api/NorthwindApi/orderByID")',
+            type: 'GET',
+            data: {
+                orderID: orderId
+            },
+            success: function (response) {
+                $('#modalFreight').val(response.freight);
+                $('#modalShipName').val(response.shipName);
+                $('#modalShipAddress').val(response.shipAddress);
+                $('#editModal').modal('show');
+            },
+            error: function (xhr, status, error) {
+                console.error("Error: " + error);
+            }
+        });
 
+
+    }
+    function closeEditModal() {
+        $('#editModal').modal('hide');
+        orderTable.ajax.reload(null, false);
+    }
+    function saveEditModal() {
+        const orderId = $('#orderID').text();
+        const freight = $('#modalFreight').val();
+        const shipName = $('#modalShipName').val();
+        const shipAddress = $('#modalShipAddress').val();
+
+        const data = {
+            orderId: orderId,
+            freight: parseFloat(freight),
+            shipName: shipName,
+            shipAddress: shipAddress
+        };
+        $.ajax({
+            url: '@Url.Content("~/api/NorthwindApi/updateOrderFields")', 
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data), 
+            success: function (response) {
+                alert('訂單更新成功！');
+                orderTable.ajax.reload(null, false);
+                $('#editOrderModal').modal('hide');
+            },
+            error: function (xhr, status, error) {
+                alert('更新失败: ' + xhr.responseText);
+            }
+        });
+    }
     function openDeleteModal(orderId) {
         const confirmationMessage = `請問你確定要刪除訂單編號: ${orderId} ,此行為會將訂單細節也一併刪除喔?`;
+        if (confirm(confirmationMessage)) {
+            $.ajax({
+                url: `@Url.Content("~/api/NorthwindApi/orders/")${orderId}`,
+                type: 'DELETE',
+                success: function (result) {
+                    orderTable.ajax.reload(null, false);
+                    alert('刪除成功！');
+                },
+                error: function (xhr, status, error) {
+                    alert(`刪除失敗：${xhr.responseText}`);
+                }
+            });
+        }
     }
+    
     function openAddModal() {
-        alert('openAddModal')
+        $('#modalAddShipName').val('');
+        $('#modalAddShipAddress').val('');
+        $('#addModal').modal('show');
+    }
+    function closeAddModal() {
+        $('#addModal').modal('hide');
+        orderTable.ajax.reload(null, false);
+    }
+    function saveAddModal() {
+        const shipName = $('#modalAddShipName').val();
+        const shipAddress = $('#modalAddShipAddress').val();
+        const data = {
+            shipName: shipName,
+            shipAddress: shipAddress
+        };
+        $.ajax({
+            url: '@Url.Content("~/api/NorthwindApi/createOrder")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (response) {
+                alert('訂單新增成功！');
+                orderTable.ajax.reload(null, false);
+                $('#addModal').modal('hide');
+            },
+            error: function (xhr, status, error) {
+                alert('新增失败: ' + xhr.responseText);
+            }
+        });
     }
 
-    function closeModal() {
-        $('#editModal').modal('hide');
-        orderTable.ajax.reload();
-    }
 
 </script>
