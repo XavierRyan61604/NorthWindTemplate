@@ -11,6 +11,8 @@
     {
         public int OrderId { get; set; }
         public string CustomerName { get; set; }
+        public string? ShipName { get; set; }
+        public string? ShipAddress { get; set; }
         public DateTime? OrderDate { get; set; }
         public decimal? Freight { get; set; }
         public decimal TotalOrderValue { get; set; }

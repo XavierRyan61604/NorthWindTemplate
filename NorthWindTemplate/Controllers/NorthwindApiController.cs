@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using NorthWindTemplate.Data.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using NorthWindTemplate.Models.DTOs;
 using NorthWindTemplate.Models.ViewModels;
 using NorthWindTemplate.Services;
@@ -18,9 +16,7 @@ namespace NorthWindTemplate.Controllers
             _orderService = orderService;
         }
 
-        // GET: api/NorthwindApi
         [HttpGet("orders")]
-        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
         public ActionResult<IEnumerable<PaginatedResponseViewModel<OrderWithDetailsResponseDTO>>> GetOrders([FromQuery] GetOrdersPaginationRequestDTO req)
         {
             var totalRecords = _orderService.GetOrdersCount();
@@ -34,8 +30,50 @@ namespace NorthWindTemplate.Controllers
                 RecordsFiltered = totalRecords,
                 Data = orders
             };
+            return Ok(response);
+        }
+
+        [HttpGet("orderByID")]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
+        public ActionResult<OrderFieldsByIdResponseDTO> GetOrderFieldsById([FromQuery] int orderID)
+        {
+            var response = _orderService.GetOrderFieldsById(orderID);
 
             return Ok(response);
+        }
+
+        [HttpPut("updateOrderFields")]
+        public ActionResult UpdateOrderFields([FromBody] OrderFieldsUpdateDTO updateDTO)
+        {
+            _orderService.UpdateOrderFields(updateDTO);
+            return NoContent();
+        }
+
+        [HttpDelete("orders/{orderId}")]
+        public ActionResult DeleteOrder(int orderId)
+        {
+            // 调用服务层删除方法
+            var success = _orderService.DeleteOrder(orderId);
+
+            if (success)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return NotFound(); 
+            }
+        }
+
+        [HttpPost("createOrder")]
+        public IActionResult CreateOrder([FromBody] AddOrderRequestDTO orderRequest)
+        {
+            if (_orderService.AddOrder(orderRequest))
+            {
+                return Ok();
+            }
+
+            return BadRequest("Failed to create order.");
         }
     }
 }
