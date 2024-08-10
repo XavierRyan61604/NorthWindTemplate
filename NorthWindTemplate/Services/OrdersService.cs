@@ -41,6 +41,7 @@ namespace NorthWindTemplate.Services
                     ShipName = g.Key.ShipName,
                     TotalOrderValue = g.Sum(od => od.orderDetail.Quantity * od.orderDetail.UnitPrice)
                 })
+                .OrderByDescending(o => o.OrderId)
                 .Skip((r.PageNumber - 1) * r.PageSize)
                 .Take(r.PageSize)
                 .ToList();
