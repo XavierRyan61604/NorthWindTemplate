@@ -1,7 +1,15 @@
+using Microsoft.EntityFrameworkCore;
+using NorthWindTemplate.Data;
+using NorthWindTemplate.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<NorthwindContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IOrderService, OrdersService>();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
