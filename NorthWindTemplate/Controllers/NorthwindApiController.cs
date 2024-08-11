@@ -34,7 +34,7 @@ namespace NorthWindTemplate.Controllers
         }
 
         [HttpGet("orderByID")]
-        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
+        [ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
         public ActionResult<OrderFieldsByIdResponseDTO> GetOrderFieldsById([FromQuery] int orderID)
         {
             var response = _orderService.GetOrderFieldsById(orderID);
